@@ -1,16 +1,18 @@
 'use client'
+import {Show, SignInButton, SignUpButton, UserButton, useUser} from '@clerk/nextjs'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React from 'react'
-
+const navItems=[
+    {label:"Library", href:"/"},
+    {label:"Add New", href:"/books/new"}
+]
 const Navbar = () => {
     const pathName=usePathname();
-    const navItems=[
-        {label:"Library", href:"/"},
-        {label:"Add New", href:"/books/new"}
-    ]
+    const {user}=useUser();
+
   return (
     <header className="w-full fixed z-50 bg-('--bg-primary')">
       <div className='wrapper navbar-height py-4 flex justify-between items-center'>
@@ -25,6 +27,19 @@ const Navbar = () => {
 <Link href={href} key={label} className={cn('nav-link-base',isActive?'nav-link-active':'text-black hover:opacity-70')}>{label} </Link>
     )
 })}
+<Show when="signed-out">
+<SignInButton>
+  <button className="text-lg font-semibold text-black hover:opacity-70 cursor-pointer">Sign In</button>
+</SignInButton>
+</Show>
+<Show when="signed-in">
+<div className="text-lg font-semibold flex items-center text-black hover:opacity-70 cursor-pointer">
+    <UserButton />
+    {user?.firstName&&(
+        <Link href="/subscriptions" className="nav-user-name">{user.firstName}</Link>
+    )}
+</div>
+</Show>
 </nav>
       </div>
         </header>
