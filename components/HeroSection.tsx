@@ -5,7 +5,7 @@ import React from 'react'
 
 const HeroSection = () => {
   return (
-    <section className="container mx-auto px-4">
+    <section className=" wrapper pt-20 pb-12">
       <div className="library-hero-card">
         <div className="library-hero-content">
           {/* Left Section - Library Info */}
