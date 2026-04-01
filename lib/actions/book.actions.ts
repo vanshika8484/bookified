@@ -35,15 +35,11 @@ export const createBook=async(data:CreateBook)=>{
             }
         }
 
-    return{
-        exists:false
-    }
-
         //Todo: Check subscription limits before creating a book
         const book=await Book.create({...data, slug,totalSegments:0});
         return {
             success: true,
-            data: serializeData(book),
+            book: serializeData(book),
         }
     } catch (error) {
         console.log(error);

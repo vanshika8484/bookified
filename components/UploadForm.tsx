@@ -156,7 +156,7 @@ if(book.alreadyExists){
   router.push(`/books/${book.book.slug}`);
   return;
 }
-const segments=await savedBookSegments(book.data._id,userId,parsedPDF.content);
+const segments=await savedBookSegments(book.book._id,userId,parsedPDF.content);
 if(!segments.success){
   toast.error("Failed to save book segments");
  throw new Error("Failed to save book segments");
