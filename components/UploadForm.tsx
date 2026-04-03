@@ -13,6 +13,7 @@ import { checkBookExists, createBook, savedBookSegments } from '@/lib/actions/bo
 import { parsePDFFile } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { upload } from '@vercel/blob/client'
+import { BookUploadFormValues } from '@/types'
 
 const formSchema = z.object({
   pdfFile: z.instanceof(File).refine(
@@ -139,6 +140,16 @@ else{
   })
   coverUrl=uploadedCoverBlob.url;
 }
+console.log('Creating book with data:', {
+  clerkId:userId,
+  title:data.title,
+  author:data.author,
+  persona:data.persona,
+  fileURL:uploadedPdfBlob.url,
+  fileBlobKey:uploadedPdfBlob.pathname,
+  coverURL:coverUrl,
+  fileSize:pdfFile.size
+});
 const book=await createBook({
   clerkId:userId,
   title:data.title,
@@ -149,14 +160,16 @@ const book=await createBook({
   coverURL:coverUrl,
   fileSize:pdfFile.size
 })
+console.log('Create book response:', book);
 if(!book.success) throw new Error("Failed to create book");
 if(book.alreadyExists){
   toast.info("Book with same title already exists");
   reset();
-  router.push(`/books/${book.book.slug}`);
+  router.push(`/books/${book.data.slug}`);
   return;
 }
-const segments=await savedBookSegments(book.book._id,userId,parsedPDF.content);
+const bookData = book.book || book.data;
+const segments=await savedBookSegments(bookData._id,userId,parsedPDF.content);
 if(!segments.success){
   toast.error("Failed to save book segments");
  throw new Error("Failed to save book segments");

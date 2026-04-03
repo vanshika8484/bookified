@@ -6,13 +6,24 @@ import { generateSlug, serializeData } from "../utils";
 import BookSegment from "@/database/models/bookSegment.model";
 
 export const checkBookExists=async(text:string)=>{
+    console.log('🔍 Checking if book exists:', text);
     try {
+        console.log('📡 Connecting to database...');
         await connectToDatabase();
+        console.log('📡 Database connection established');
        const slug=generateSlug(text);
+       console.log('🔎 Searching for book with slug:', slug);
        const existingBook=await Book.findOne({ slug }).lean();
+       if(existingBook){
+        console.log('✅ Book already exists:', existingBook.title);
+        return {
+            exists:true,
+            book:serializeData(existingBook)
+        }
+       }
+       console.log('ℹ️ Book does not exist, can create new one');
        return {
-        exists:true,
-       book:serializeData(existingBook)
+        exists:false,
        }
     } catch (error) {
         console.log('Error checking book exists',error);
@@ -23,26 +34,37 @@ export const checkBookExists=async(text:string)=>{
     }
 }
 export const createBook=async(data:CreateBook)=>{
+    console.log('🆕 Creating new book:', data.title);
     try {
+        console.log('📡 Connecting to database...');
         await connectToDatabase();
+        console.log('📡 Database connection established');
         const slug=generateSlug(data.title);
+        console.log('🔎 Checking for existing book with slug:', slug);
         const existingBook=await Book.findOne({ slug }).lean();
         if(existingBook){
+            console.log('⚠️ Book already exists, returning existing book');
             return {
                 success: true,
-                book: serializeData(existingBook),
+                data: serializeData(existingBook),
                 alreadyExists: true
             }
         }
 
+        console.log('✨ Creating new book in database...');
         //Todo: Check subscription limits before creating a book
         const book=await Book.create({...data, slug,totalSegments:0});
+        console.log('🎉 Book created successfully:', book.title);
         return {
             success: true,
             book: serializeData(book),
         }
     } catch (error) {
-        console.log(error);
+        console.error('Error creating book:', error);
+        if (error instanceof Error) {
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+        }
         return {
             success: false,
             error: error
@@ -52,6 +74,7 @@ export const createBook=async(data:CreateBook)=>{
 export const savedBookSegments=async(bookId:string,clerkId:string,segments:TextSegment[])=>{
     try {
         await connectToDatabase();
+
         console.log("Saving book segments...");
        const segmentsToInsert=segments.map(({text,segmentIndex,pageNumber,wordCount})=>({
         clerkId,
