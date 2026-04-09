@@ -1,60 +1,72 @@
 import mongoose from 'mongoose';
-import { config } from 'dotenv';
 
-// Load environment variables
-config();
-
-// Use a more explicit connection string
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://vanshikaagarwal8484_db_user:PguxHOx1yiZKMEKh@cluster0.qezxdg3.mongodb.net/bookified?retryWrites=true&w=majority&appName=Cluster0';
+const LOCAL_MONGODB_URI = 'mongodb://localhost:27017/bookified';
 
 if (!MONGODB_URI) {
+
   throw new Error('Please define the MONGODB_URI environment variable');
+
 }
+
 declare global {
+
   var mongooseCache: {
+
     conn: typeof mongoose | null;
+
     promise: Promise<typeof mongoose> | null;
+
   };
+
 }
+
 let cached = global.mongooseCache||(global.mongooseCache = { conn: null, promise: null });
+
 export const connectToDatabase = async () => {
-  console.log('🔍 Attempting to connect to MongoDB...');
-  console.log('📋 Connection URI:', MONGODB_URI.replace(/\/\/.*@/, '//***:***@')); // Hide credentials
+  console.log('=== MongoDB Connection Attempt ===');
   
   if (cached.conn) {
-    console.log('✅ Using existing MongoDB connection');
+    console.log('Using existing connection');
     return cached.conn;
   }
-  
-  if (!cached.promise) {
-    console.log('🔄 Creating new MongoDB connection...');
-    cached.promise = mongoose.connect(MONGODB_URI, {
+
+  // Try Atlas first, then fallback to local
+  const connectionUris = [
+    { name: 'MongoDB Atlas', uri: MONGODB_URI },
+    { name: 'Local MongoDB', uri: LOCAL_MONGODB_URI }
+  ];
+
+  for (const { name, uri } of connectionUris) {
+    try {
+      console.log(`Attempting to connect to ${name}...`);
+      console.log(`URI: ${uri.replace(/\/\/.*@/, '//***:***@')}`);
+      
+      cached.promise = mongoose.connect(uri, {
         bufferCommands: false,
-        maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000,
-        family: 4 // Use IPv4
-    });
-  }
-  
-  try {
-    console.log('⏳ Waiting for MongoDB connection...');
-    cached.conn = await cached.promise;
-    console.log('🎉 MongoDB connected successfully!');
-    console.log('📊 Database name:', cached.conn.connection.name);
-    console.log('🌐 Connection host:', cached.conn.connection.host);
-  } catch (error) {
-    cached.promise = null;
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('❌ MongoDB connection failed:', errorMessage);
-    console.error('🔧 Troubleshooting tips:');
-    console.error('   1. Check if MongoDB Atlas cluster is running');
-    console.error('   2. Verify your IP is whitelisted in MongoDB Atlas');
-    console.error('   3. Check if connection string is correct');
-    console.error('   4. Ensure you have internet connection');
-    throw error;
+      });
+      
+      cached.conn = await cached.promise;
+      console.log(`Successfully connected to ${name}!`);
+      console.log(`Database: ${cached.conn.connection.name}`);
+      return cached.conn;
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`Failed to connect to ${name}:`, errorMessage);
+      cached.promise = null;
+      
+      // If this is the last option, throw the error
+      if (name === connectionUris[connectionUris.length - 1].name) {
+        console.error('All connection attempts failed');
+        throw new Error('Failed to connect to any MongoDB instance');
+      }
+    }
   }
   
   return cached.conn;
 };
+
 export default cached;
+

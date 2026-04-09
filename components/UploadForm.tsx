@@ -93,106 +93,98 @@ const router=useRouter();
     setValue('coverImage', undefined as any)
   }, [setValue])
 
-  const onSubmit = async (data: FormValues) => {
-    if(!userId){
-     return toast.error("Please login to upload books");
+ const onSubmit = async (data: FormValues) => {
+    if (!userId) {
+        return toast.error("Please login to upload books");
     }
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
-    //PostHog=> Track Book Uploads...
-    try{
-     const existsCheck=await checkBookExists(data.title)
-     if(existsCheck.exists && existsCheck.book){
-     toast.info("Book with same title already exists");
-      reset();
-      router.push(`/books/${existsCheck.book.slug}`);
-      return;
-     }
-     const fileTitle=data.title.replace(/\s+/g, '-').toLowerCase();
-     const pdfFile=data.pdfFile;
-     const parsedPDF = await parsePDFFile(pdfFile);
-     if(parsedPDF.content.length === 0){
-      toast.error("Failed to parse PDF file. Please try again.");
-      return;
-     }
-const uploadedPdfBlob=await upload(fileTitle,pdfFile,{
-  access:'public',
-  handleUploadUrl:'/api/upload',
-  contentType:'application/pdf'
-})
-let coverUrl:string;
-if(data.coverImage){
-  const coverFile=data.coverImage;
-  const uploadedCoverBlob=await upload(`${fileTitle}_cover.png`,coverFile,{
-    access:'public',
-    handleUploadUrl:'/api/upload',
-    contentType:coverFile.type
-  })
-  coverUrl=uploadedCoverBlob.url;
-}
-else{
-  const response=await fetch(parsedPDF.cover);
-  const blob=await response.blob();
-  const uploadedCoverBlob=await upload(`${fileTitle}_cover.png`,blob,{
-    access:'public',
-    handleUploadUrl:'/api/upload',
-    contentType:'image/png'
-  })
-  coverUrl=uploadedCoverBlob.url;
-}
-console.log('Creating book with data:', {
-  clerkId:userId,
-  title:data.title,
-  author:data.author,
-  persona:data.persona,
-  fileURL:uploadedPdfBlob.url,
-  fileBlobKey:uploadedPdfBlob.pathname,
-  coverURL:coverUrl,
-  fileSize:pdfFile.size
-});
-const book=await createBook({
-  clerkId:userId,
-  title:data.title,
-  author:data.author,
-  persona:data.persona,
-  fileURL:uploadedPdfBlob.url,
-  fileBlobKey:uploadedPdfBlob.pathname,
-  coverURL:coverUrl,
-  fileSize:pdfFile.size
-})
-console.log('Create book response:', book);
-if(!book.success) throw new Error("Failed to create book");
-if(book.alreadyExists){
-  toast.info("Book with same title already exists");
-  reset();
-  router.push(`/books/${book.data.slug}`);
-  return;
-}
-const bookData = book.book || book.data;
-const segments=await savedBookSegments(bookData._id,userId,parsedPDF.content);
-if(!segments.success){
-  toast.error("Failed to save book segments");
- throw new Error("Failed to save book segments");
-}
-reset();
-router.push('/');
-    }catch(error){
-      console.error('Book existence check failed:', error)
-      toast.error("Failed to upload book. Please try again.");
-    }
-    finally{
-      setIsSubmitting(false)
-    }
     try {
-      // Handle form submission
-      console.log('Form data:', data)
-      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate upload
+        const existsCheck = await checkBookExists(data.title);
+        if (existsCheck.exists && existsCheck.book) {
+            toast.info("Book with same title already exists");
+            reset();
+            router.push(`/books/${existsCheck.book.slug}`);
+            return;
+        }
+
+        const fileTitle = data.title.replace(/\s+/g, '-').toLowerCase();
+        const pdfFile = data.pdfFile;
+        const parsedPDF = await parsePDFFile(pdfFile);
+        
+        if (parsedPDF.content.length === 0) {
+            toast.error("Failed to parse PDF file. Please try again.");
+            return;
+        }
+
+        const uploadedPdfBlob = await upload(fileTitle, pdfFile, {
+            access: 'public',
+            handleUploadUrl: '/api/upload',
+            contentType: 'application/pdf'
+        });
+
+        let coverUrl: string;
+        if (data.coverImage) {
+            const coverFile = data.coverImage;
+            const uploadedCoverBlob = await upload(`${fileTitle}_cover.png`, coverFile, {
+                access: 'public',
+                handleUploadUrl: '/api/upload',
+                contentType: coverFile.type
+            });
+            coverUrl = uploadedCoverBlob.url;
+        } else {
+            const response = await fetch(parsedPDF.cover);
+            const blob = await response.blob();
+            const uploadedCoverBlob = await upload(`${fileTitle}_cover.png`, blob, {
+                access: 'public',
+                handleUploadUrl: '/api/upload',
+                contentType: 'image/png'
+            });
+            coverUrl = uploadedCoverBlob.url;
+        }
+
+        const book = await createBook({
+            clerkId: userId,
+            title: data.title,
+            author: data.author,
+            persona: data.persona,
+            fileURL: uploadedPdfBlob.url,
+            fileBlobKey: uploadedPdfBlob.pathname,
+            coverURL: coverUrl,
+            fileSize: pdfFile.size
+        });
+
+        if (!book.success) {
+            const errorMsg = book.error instanceof Error ? book.error.message : String(book.error);
+            throw new Error(`Failed to create book: ${errorMsg}`);
+        }
+
+        if (book.alreadyExists) {
+            toast.info("Book with same title already exists");
+            reset();
+            router.push(`/books/${book.book.slug}`);
+            return;
+        }
+
+        const bookData = book.book;
+        const segments = await savedBookSegments(bookData._id, userId, parsedPDF.content);
+        
+        if (!segments.success) {
+            toast.error("Failed to save book segments");
+            throw new Error("Failed to save book segments");
+        }
+
+        toast.success("Book uploaded successfully!");
+        reset();
+        router.push('/');
+        
     } catch (error) {
-      console.error('Upload failed:', error)
+        console.error('Book upload failed:', error);
+        toast.error(error instanceof Error ? error.message : "Failed to upload book. Please try again.");
     } finally {
-      setIsSubmitting(false)
+        setIsSubmitting(false);
     }
-  }
+};
 
   return (
     <div className="new-book-wrapper">

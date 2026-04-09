@@ -33,41 +33,42 @@ export const checkBookExists=async(text:string)=>{
         }
     }
 }
-export const createBook=async(data:CreateBook)=>{
+export const createBook = async (data: CreateBook) => {
     console.log('🆕 Creating new book:', data.title);
     try {
         console.log('📡 Connecting to database...');
         await connectToDatabase();
         console.log('📡 Database connection established');
-        const slug=generateSlug(data.title);
+        const slug = generateSlug(data.title);
         console.log('🔎 Checking for existing book with slug:', slug);
-        const existingBook=await Book.findOne({ slug }).lean();
-        if(existingBook){
+        const existingBook = await Book.findOne({ slug }).lean();
+        
+        if (existingBook) {
             console.log('⚠️ Book already exists, returning existing book');
             return {
                 success: true,
-                data: serializeData(existingBook),
+                book: serializeData(existingBook),  // ✅ Changed from 'data' to 'book'
                 alreadyExists: true
             }
         }
 
         console.log('✨ Creating new book in database...');
-        //Todo: Check subscription limits before creating a book
-        const book=await Book.create({...data, slug,totalSegments:0});
+        const book = await Book.create({ ...data, slug, totalSegments: 0 });
         console.log('🎉 Book created successfully:', book.title);
         return {
             success: true,
             book: serializeData(book),
+            alreadyExists: false  // ✅ Added for consistency
         }
     } catch (error) {
-        console.error('Error creating book:', error);
+        console.error('❌ Error creating book:', error);
         if (error instanceof Error) {
             console.error('Error message:', error.message);
             console.error('Error stack:', error.stack);
         }
         return {
             success: false,
-            error: error
+            error: error instanceof Error ? error.message : 'Unknown error'  // ✅ Return error message
         }
     }
 }
