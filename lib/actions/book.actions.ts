@@ -27,9 +27,10 @@ export const checkBookExists=async(text:string)=>{
        }
     } catch (error) {
         console.log('Error checking book exists',error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return {
             exists:false,
-            error
+            error: String(errorMessage)
         }
     }
 }
@@ -47,7 +48,7 @@ export const createBook = async (data: CreateBook) => {
             console.log('⚠️ Book already exists, returning existing book');
             return {
                 success: true,
-                book: serializeData(existingBook),  // ✅ Changed from 'data' to 'book'
+                book: serializeData(existingBook),
                 alreadyExists: true
             }
         }
@@ -57,18 +58,16 @@ export const createBook = async (data: CreateBook) => {
         console.log('🎉 Book created successfully:', book.title);
         return {
             success: true,
-            book: serializeData(book),
-            alreadyExists: false  // ✅ Added for consistency
+            book: serializeData(book.toObject()),
+            alreadyExists: false
         }
     } catch (error) {
         console.error('❌ Error creating book:', error);
-        if (error instanceof Error) {
-            console.error('Error message:', error.message);
-            console.error('Error stack:', error.stack);
-        }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error message:', errorMessage);
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Unknown error'  // ✅ Return error message
+            error: String(errorMessage)
         }
     }
 }

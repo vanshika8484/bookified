@@ -104,7 +104,7 @@ const router=useRouter();
         if (existsCheck.exists && existsCheck.book) {
             toast.info("Book with same title already exists");
             reset();
-            router.push(`/books/${existsCheck.book.slug}`);
+            router.push('/');
             return;
         }
 
@@ -155,14 +155,14 @@ const router=useRouter();
         });
 
         if (!book.success) {
-            const errorMsg = book.error instanceof Error ? book.error.message : String(book.error);
+            const errorMsg = typeof book.error === 'string' ? book.error : 'Unknown error';
             throw new Error(`Failed to create book: ${errorMsg}`);
         }
 
         if (book.alreadyExists) {
             toast.info("Book with same title already exists");
             reset();
-            router.push(`/books/${book.book.slug}`);
+            router.push('/');
             return;
         }
 
@@ -180,7 +180,8 @@ const router=useRouter();
         
     } catch (error) {
         console.error('Book upload failed:', error);
-        toast.error(error instanceof Error ? error.message : "Failed to upload book. Please try again.");
+        const errorMessage = error instanceof Error ? error.message : "Failed to upload book. Please try again.";
+        toast.error(errorMessage);
     } finally {
         setIsSubmitting(false);
     }
