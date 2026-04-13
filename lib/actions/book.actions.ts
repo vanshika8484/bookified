@@ -88,6 +88,29 @@ export const createBook = async (data: CreateBook) => {
         }
     }
 }
+export const getBookBySlug = async (slug: string) => {
+    try {
+        await connectToDatabase();
+        const book = await Book.findOne({ slug }).lean();
+        if (!book) {
+            return {
+                success: false,
+                error: 'Book not found'
+            }
+        }
+        return {
+            success: true,
+            data: serializeData(book)
+        }
+    } catch (error) {
+        console.log('Error getting book by slug', error);
+        return {
+            success: false,
+            error: error
+        }
+    }
+}
+
 export const savedBookSegments=async(bookId:string,clerkId:string,segments:TextSegment[])=>{
     try {
         await connectToDatabase();

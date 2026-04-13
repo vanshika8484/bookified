@@ -1,77 +1,82 @@
-import { notFound } from 'next/navigation'
-import Book from '@/database/models/book.model'
-import { connectToDatabase } from '@/database/mongoose'
-import { serializeData } from '@/lib/utils'
-
-async function getBook(slug: string) {
-  try {
-    await connectToDatabase()
-    const book = await Book.findOne({ slug }).lean()
-    if (!book) {
-      return null
-    }
-    return serializeData(book)
-  } catch (error) {
-    console.error('Error fetching book:', error)
-    return null
-  }
-}
+import { redirect } from 'next/navigation'
+import { auth } from '@clerk/nextjs/server'
+import { getBookBySlug } from '@/lib/actions/book.actions'
+import { MicOff, Mic, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function BookPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const book = await getBook(slug)
-
-  if (!book) {
-    notFound()
+  const { userId } = await auth()
+  
+  if (!userId) {
+    redirect('/')
   }
 
+  const { slug } = await params
+  const bookResult = await getBookBySlug(slug)
+
+  if (!bookResult.success || !bookResult.data) {
+    redirect('/')
+  }
+
+  const book = bookResult.data
+
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] py-12">
-      <div className="wrapper">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-[var(--bg-secondary)] rounded-lg shadow-lg p-8">
-            <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-4">
+    <div className="book-page-container">
+      <Link href="/" className="back-btn-floating">
+        <ArrowLeft className="w-5 h-5 text-[var(--text-primary)]" />
+      </Link>
+
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header Card */}
+        <div className="vapi-header-card">
+          {/* Left: Book Cover */}
+          <div className="relative flex-shrink-0">
+            <img
+              src={book.coverURL}
+              alt={book.title}
+              className="lg:w-20 lg:h-28 w-16 h-20 object-cover rounded-lg shadow-lg"
+            />
+            {/* Mic Button */}
+            <button className="vapi-mic-btn vapi-mic-btn-inactive absolute bottom-2 left-2 shadow-lg">
+              <MicOff className="w-6 h-6 text-[var(--text-primary)]" />
+            </button>
+          </div>
+
+          {/* Right: Book Info */}
+          <div className="flex-1">
+            <h1 className="font-ibm-plex-serif text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-2">
               {book.title}
             </h1>
-            <p className="text-lg text-[var(--text-secondary)] mb-6">
-              By {book.author}
+            <p className="text-[var(--text-secondary)] mb-4">
+              by {book.author}
             </p>
-            {book.coverURL && (
-              <img
-                src={book.coverURL}
-                alt={book.title}
-                className="w-full h-64 object-cover rounded-lg mb-6"
-              />
-            )}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
-                  File
-                </h3>
-                <a
-                  href={book.fileURL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[var(--color-brand)] hover:underline"
-                >
-                  View PDF
-                </a>
+
+            {/* Status Badges */}
+            <div className="flex flex-wrap gap-2">
+              <div className="vapi-status-indicator">
+                <span className="vapi-status-dot vapi-status-dot-ready"></span>
+                <span className="vapi-status-text">Ready</span>
               </div>
-              {book.persona && (
-                <div>
-                  <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
-                    Assistant Persona
-                  </h3>
-                  <p className="text-[var(--text-primary)]">{book.persona}</p>
-                </div>
-              )}
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
-                  Total Segments
-                </h3>
-                <p className="text-[var(--text-primary)]">{book.totalSegments || 0}</p>
+              <div className="vapi-status-indicator">
+                <span className="vapi-status-text">
+                  Voice: {book.persona || 'Default'}
+                </span>
+              </div>
+              <div className="vapi-status-indicator">
+                <span className="vapi-status-text">0:00/15:00</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Transcript Area */}
+        <div className="transcript-container min-h-[400px]">
+          <div className="transcript-empty">
+            <Mic className="w-12 h-12 text-[var(--text-muted)] mb-4" />
+            <p className="transcript-empty-text">No conversation yet</p>
+            <p className="transcript-empty-hint">
+              Click the mic button above to start talking
+            </p>
           </div>
         </div>
       </div>
