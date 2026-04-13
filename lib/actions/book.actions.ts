@@ -5,6 +5,23 @@ import { connectToDatabase } from "@/database/mongoose";
 import { generateSlug, serializeData } from "../utils";
 import BookSegment from "@/database/models/bookSegment.model";
 
+export const getAllBooks=async()=>{
+try{
+await connectToDatabase();
+const books=await Book.find().sort({createdAt: -1}).lean();
+return {
+    success: true,
+    data: serializeData(books)
+}
+}
+catch(error){
+    console.log('Error getting all books',error);
+    return {
+        success: false,
+        error: error
+    }
+}
+}
 export const checkBookExists=async(text:string)=>{
     console.log('🔍 Checking if book exists:', text);
     try {
