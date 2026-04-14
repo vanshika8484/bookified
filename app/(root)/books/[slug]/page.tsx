@@ -30,14 +30,14 @@ export default async function BookPage({ params }: { params: Promise<{ slug: str
         {/* Header Card */}
         <div className="vapi-header-card">
           {/* Left: Book Cover */}
-          <div className="relative flex-shrink-0">
+          <div className="relative flex-shrink-0 mt-15">
             <img
               src={book.coverURL}
               alt={book.title}
-              className="lg:w-20 lg:h-28 w-16 h-20 object-cover rounded-lg shadow-lg"
+              className="vapi-cover-image"
             />
             {/* Mic Button */}
-            <button className="vapi-mic-btn vapi-mic-btn-inactive absolute bottom-2 left-2 shadow-lg">
+            <button className="vapi-mic-btn vapi-mic-btn-inactive absolute bottom-10 left-30 shadow-lg">
               <MicOff className="w-6 h-6 text-[var(--text-primary)]" />
             </button>
           </div>
