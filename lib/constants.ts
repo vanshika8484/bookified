@@ -106,13 +106,11 @@ export const voiceOptions = {
     rachel: { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', description: 'Young female, American, calm & clear' },
     sarah: { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', description: 'Young female, American, soft & approachable' },
 };
-
 // Voice categories for the selector UI
 export const voiceCategories = {
     male: ['dave', 'daniel', 'chris'],
     female: ['rachel', 'sarah'],
 };
-
 // Default voice
 export const DEFAULT_VOICE = 'rachel';
 
