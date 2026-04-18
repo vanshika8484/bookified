@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { getBookBySlug } from '@/lib/actions/book.actions'
 import { MicOff, Mic, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import VapiControls from '@/components/VapiControls'
 
 export default async function BookPage({ params }: { params: Promise<{ slug: string }> }) {
   const { userId } = await auth()
@@ -70,15 +71,7 @@ export default async function BookPage({ params }: { params: Promise<{ slug: str
         </div>
 
         {/* Transcript Area */}
-        <div className="transcript-container min-h-[400px]">
-          <div className="transcript-empty">
-            <Mic className="w-12 h-12 text-[var(--text-muted)] mb-4" />
-            <p className="transcript-empty-text">No conversation yet</p>
-            <p className="transcript-empty-hint">
-              Click the mic button above to start talking
-            </p>
-          </div>
-        </div>
+       <VapiControls />
       </div>
     </div>
   )
