@@ -17,7 +17,7 @@ export const useVapi = (book:IBook) =>{
     const {userId} =useAuth();
 
     // TODO: Implement limits
-    const [status, setSatus] = useState<CallStatus>('idle');
+    const [status, setStatus] = useState<CallStatus>('idle');
     const [message, setMessage] = useState<Messages[]>([]);
     const [currentMessage, setCurrentMessage] = useState('');
     const [currentUserMessage, setCurrentUserMessage] = useState('');
@@ -35,7 +35,21 @@ export const useVapi = (book:IBook) =>{
    // const maxDurationRef = useLatestRef(limits.maxSessionMinutes*60);
 
 const isActive=status === 'listening' || status === 'thinking' || status === 'speaking'|| status === 'starting';
-const start=async()=>{}
+const start=async()=>{
+    if(!userId) return setLimitError('Please sign in to start conversation');
+setLimitError(null);
+setStatus('connecting');
+try{
+
+}
+catch(error){
+    console.error('Failed to start conversation', error);
+    setStatus('idle');
+    setLimitError('Failed to start conversation');
+
+}
+
+}
 const stop=async()=>{}
 const clearErrors=async()=>{}
 return {
