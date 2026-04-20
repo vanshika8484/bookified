@@ -7,14 +7,13 @@ import Transcript from './Transcript'
 
 const VapiControls = ({book}:{book:IBook}) => {
   const {status,
-    message,
+    messages,
     currentMessage,
     currentUserMessage,
     duration,
     isActive,
     start,
-    stop,
-    clearErrors} = useVapi(book);
+    stop,} = useVapi(book);
   return (
     <>
       <div className="max-w-4xl mx-auto space-y-6">
@@ -78,7 +77,7 @@ const VapiControls = ({book}:{book:IBook}) => {
 
    <div className="vapi-transcript-wrapper">
           <Transcript
-            messages={message}
+            messages={messages}
             currentMessage={currentMessage}
             currentUserMessage={currentUserMessage}
           />

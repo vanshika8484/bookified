@@ -98,6 +98,17 @@ export interface VoiceSelectorProps {
     onChange: (voiceId: string) => void;
 }
 
+export interface StartSessionResult {
+    success: boolean;
+    sessionId?: string;
+    error?: string;
+}
+
+export interface EndSessionResult {
+    success: boolean;
+    error?: string;
+}
+
 export interface InputFieldProps<T extends FieldValues> {
     control: Control<T>;
     name: FieldPath<T>;
