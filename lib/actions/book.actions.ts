@@ -109,6 +109,9 @@ export const createBook = async (data: CreateBook) => {
 
         const book = await Book.create({...data, clerkId: userId, slug, totalSegments: 0});
 
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath("/");
+
         return {
             success: true,
             data: serializeData(book),
