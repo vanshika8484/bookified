@@ -9,7 +9,7 @@ import { voiceOptions, voiceCategories } from '@/lib/constants'
 import {useAuth} from "@clerk/nextjs"
 import { ACCEPTED_IMAGE_TYPES, ACCEPTED_PDF_TYPES, MAX_FILE_SIZE, MAX_IMAGE_SIZE } from '@/lib/constants'
 import { toast } from 'sonner'
-import { checkBookExists, createBook, savedBookSegments } from '@/lib/actions/book.actions'
+import { checkBookExists, createBook, saveBookSegments } from '@/lib/actions/book.actions'
 import { parsePDFFile } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { upload } from '@vercel/blob/client'
@@ -166,8 +166,8 @@ const router=useRouter();
             return;
         }
 
-        const bookData = book.book;
-        const segments = await savedBookSegments(bookData._id, userId, parsedPDF.content);
+        const bookData = book.data;
+        const segments = await saveBookSegments(bookData._id, userId, parsedPDF.content);
         
         if (!segments.success) {
             toast.error("Failed to save book segments");
