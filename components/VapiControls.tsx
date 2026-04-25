@@ -13,10 +13,58 @@ const VapiControls = ({book}:{book:IBook}) => {
     duration,
     isActive,
     start,
-    stop,} = useVapi(book);
+    stop,
+    maxDurationMinutes,
+    remainingSeconds,
+    showTimeWarning,
+    limitError,
+    clearError,} = useVapi(book);
+
+  // Format duration as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Get status text and color
+  const getStatusInfo = () => {
+    switch (status) {
+      case 'connecting':
+        return { text: 'Connecting...', color: 'bg-yellow-500' };
+      case 'starting':
+        return { text: 'Starting...', color: 'bg-blue-500' };
+      case 'listening':
+        return { text: 'Listening', color: 'bg-green-500' };
+      case 'thinking':
+        return { text: 'Thinking', color: 'bg-yellow-500' };
+      case 'speaking':
+        return { text: 'Speaking', color: 'bg-green-500' };
+      default:
+        return { text: 'Ready', color: 'bg-gray-400' };
+    }
+  };
+
+  const statusInfo = getStatusInfo();
   return (
     <>
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Error Banner */}
+        {limitError && (
+          <div className="error-banner">
+            <div className="error-banner-content">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-800">{limitError}</p>
+              </div>
+              <button
+                onClick={clearError}
+                className="error-banner-dismiss"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
         {/* Header Card */}
         <div className="vapi-header-card">
           {/* Left: Book Cover */}
@@ -59,16 +107,18 @@ const VapiControls = ({book}:{book:IBook}) => {
             {/* Status Badges */}
             <div className="flex flex-wrap gap-2">
               <div className="vapi-status-indicator">
-                <span className="vapi-status-dot vapi-status-dot-ready"></span>
-                <span className="vapi-status-text">Ready</span>
+                <span className={`vapi-status-dot ${statusInfo.color}`}></span>
+                <span className="vapi-status-text">{statusInfo.text}</span>
               </div>
               <div className="vapi-status-indicator">
                 <span className="vapi-status-text">
                   Voice: {book.persona || 'Default'}
                 </span>
               </div>
-              <div className="vapi-status-indicator">
-                <span className="vapi-status-text">0:00/15:00</span>
+              <div className={`vapi-status-indicator ${showTimeWarning ? 'bg-red-50 border-red-200' : ''}`}>
+                <span className="vapi-status-text">
+                  {formatTime(duration)}/{formatTime(maxDurationMinutes * 60)}
+                </span>
               </div>
             </div>
           </div>
