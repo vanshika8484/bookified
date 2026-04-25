@@ -7,7 +7,8 @@ import { usePathname } from 'next/navigation'
 import React from 'react'
 const navItems=[
     {label:"Library", href:"/"},
-    {label:"Add New", href:"/books/new"}
+    {label:"Add New", href:"/books/new"},
+    {label:"Pricing", href:"/subscriptions"}
 ]
 const Navbar = () => {
     const pathName=usePathname();
@@ -35,9 +36,6 @@ const Navbar = () => {
 <Show when="signed-in">
 <div className="text-lg font-semibold flex items-center text-black hover:opacity-70 cursor-pointer">
     <UserButton />
-    {user?.firstName&&(
-        <Link href="/subscriptions" className="nav-user-name">{user.firstName}</Link>
-    )}
 </div>
 </Show>
 </nav>
