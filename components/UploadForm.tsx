@@ -260,7 +260,7 @@ const router=useRouter();
 
         {/* Cover Image Upload */}
         <div>
-          <label className="form-label">Cover Image(Optional)</label>
+          <label className="form-label">Cover Image</label>
           <div className="upload-dropzone relative" onClick={handleCoverClick}>
             <input
               id="cover-input"

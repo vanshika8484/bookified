@@ -1,10 +1,23 @@
+'use client';
+
 import { BookCardProps } from '@/types'
 import Link from 'next/link'
 import React from 'react'
+import { useAuth } from '@clerk/nextjs'
+import { toast } from 'sonner'
 
 const BookCard = ({title,author,coverURL,slug}:BookCardProps) => {
+  const { isSignedIn } = useAuth();
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (!isSignedIn) {
+      e.preventDefault();
+      toast.error('Please sign in to open a book');
+    }
+  };
+
   return (
-   <Link href={`/books/${slug}`} className="block">
+   <Link href={`/books/${slug}`} className="block" onClick={handleClick}>
     <article className='book-card '>
      <figure className='book-card-figure'>
        <div className='book-card-cover-wrapper'>
