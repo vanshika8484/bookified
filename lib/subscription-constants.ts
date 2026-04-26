@@ -14,10 +14,10 @@ export const getCurrentBillingPeriodStart = ():Date => {
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     free: {
-        maxBooks: 1,
-        maxSessionsPerMonth: 5,
-        maxSessionDurationMinutes: 5,
-        hasSessionHistory: false,
+        maxBooks: 5,
+        maxSessionsPerMonth: 50,
+        maxSessionDurationMinutes: 15,
+        hasSessionHistory: true,
     },
     standard: {
         maxBooks: 10,
